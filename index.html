@@ -976,8 +976,11 @@ function renderCard(topic) {
   const weightInput = card.querySelector('.inline-input');
   weightInput.addEventListener('change', (e) => {
     const val = parseFloat(e.target.value);
-    if (!isNaN(val) && val > 0 && val <= 100) {
+    if (!isNaN(val) && val >= 0.1 && val <= 100) {
       updateTopic(topic.id, { weight: val });
+    } else {
+      e.target.value = topic.weight;
+      showToast('Enter a valid marks weight (0.1–100).');
     }
   });
 
@@ -1062,9 +1065,12 @@ function updateSummary() {
     if (zone === 'amber') { amber++; riskWeight += t.weight; }
   });
 
+  // Use a small epsilon for floating point comparison with 100%
+  const displayRisk = Math.abs(riskWeight - 100) < 0.001 ? 100 : riskWeight;
+
   document.getElementById('statRed').textContent = red;
   document.getElementById('statAmber').textContent = amber;
-  document.getElementById('statRisk').textContent = riskWeight.toFixed(0) + '%';
+  document.getElementById('statRisk').textContent = (displayRisk % 1 === 0 ? displayRisk : displayRisk.toFixed(1)) + '%';
   document.getElementById('statTotal').textContent = sorted.length;
 
   const top3Row = document.getElementById('top3Row');
@@ -1094,8 +1100,8 @@ function checkWeightTotal() {
 
   ws.style.display = 'flex';
   const rounded = Math.round(total * 10) / 10;
-  if (Math.abs(total - 100) < 0.5) {
-    ws.innerHTML = `<span class="total ok">✓ Total: ${rounded}%</span>`;
+  if (Math.abs(total - 100) < 0.01) {
+    ws.innerHTML = `<span class="total ok">✓ Total: 100%</span>`;
     ww.classList.remove('show');
   } else {
     const delta = 100 - total;
@@ -1116,7 +1122,7 @@ function addTopic() {
   const confidence = state.selectedConfidence;
 
   if (!name) { nameEl.focus(); showToast('Enter a topic name.'); return; }
-  if (!weight || weight <= 0 || weight > 100) { weightEl.focus(); showToast('Enter a valid marks weight (0.1–100).'); return; }
+  if (!weight || weight < 0.1 || weight > 100) { weightEl.focus(); showToast('Enter a valid marks weight (0.1–100).'); return; }
 
   const topic = { id: uid(), name, weight, confidence };
   state.topics.push(topic);
@@ -1183,7 +1189,7 @@ function exportSummary() {
     `YELLOW ZONE (Review):   ${fmt(zones.yellow)}`,
     `GREEN ZONE  (Safe):     ${fmt(zones.green)}`,
     ``,
-    `High-risk marks: ${riskWeight.toFixed(0)}%`,
+    `High-risk marks: ${riskWeight % 1 === 0 ? riskWeight : riskWeight.toFixed(1)}%`,
   ].join('\n');
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
