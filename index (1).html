@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ZoneMap — Exam Priority Mapper</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --accent: #10b981;
+    --accent-dim: rgba(16,185,129,0.15);
+    --accent-glow: 0 0 20px rgba(16,185,129,0.3);
+    --glass-bg: rgba(255,255,255,0.05);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --text: #f0f0f4;
+    --text-muted: rgba(240,240,244,0.45);
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --yellow: #eab308;
+    --green: #10b981;
+    --red-bg: rgba(239,68,68,0.08);
+    --amber-bg: rgba(245,158,11,0.08);
+    --yellow-bg: rgba(234,179,8,0.08);
+    --green-bg: rgba(16,185,129,0.08);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding: 0 0 200px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(16,185,129,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 36px 0 24px;
+    opacity: 0;
+    transform: translateY(-16px);
+    animation: revealDown 0.5s ease forwards 0.05s;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(22px, 5vw, 30px);
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .tagline {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.01em;
+  }
+
+  /* ── INPUT SECTION ── */
+  .input-section {
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: revealUp 0.5s ease forwards 0.18s;
+  }
+
+  .card {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--glass-shadow);
+    padding: 20px;
+  }
+
+  .section-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .subject-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    align-items: center;
+  }
+
+  input[type="text"], input[type="number"] {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    padding: 12px 14px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]::placeholder,
+  input[type="number"]::placeholder {
+    color: var(--text-muted);
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+  .add-topic-grid {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .confidence-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    white-space: nowrap;
+    min-width: 90px;
+  }
+
+  .stars {
+    display: flex;
+    gap: 6px;
+  }
+
+  .star {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: transform 0.12s ease, background 0.15s;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  .star svg {
+    width: 20px;
+    height: 20px;
+    transition: fill 0.15s, stroke 0.15s;
+  }
+
+  .star.filled svg { fill: var(--accent); stroke: var(--accent); }
+  .star:not(.filled) svg { fill: none; stroke: rgba(255,255,255,0.25); }
+  .star:hover { transform: scale(1.18); background: rgba(16,185,129,0.1); }
+
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 12px 18px;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.15s;
+    touch-action: manipulation;
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .btn-primary:hover { box-shadow: var(--accent-glow); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+    font-size: 13px;
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .btn-ghost:active { transform: scale(0.97); }
+
+  .btn-danger {
+    background: rgba(239,68,68,0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.2);
+    font-size: 13px;
+  }
+
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-danger:active { transform: scale(0.97); }
+
+  /* ── WEIGHT WARNING ── */
+  .weight-warning {
+    display: none;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--amber);
+    margin-top: 10px;
+    font-weight: 400;
+  }
+
+  .weight-warning.show { display: block; }
+
+  /* ── TOPIC LIST ── */
+  .list-section {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: revealUp 0.5s ease forwards 0.3s;
+  }
+
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 2px;
+  }
+
+  .list-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .topic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 60px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.7;
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius);
+    display: none;
+  }
+
+  .empty-state.show { display: block; }
+
+  .empty-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  /* ── TOPIC CARD ── */
+  .topic-card {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--glass-shadow);
+    border-left: 4px solid var(--green);
+    padding: 14px 16px;
+    position: relative;
+    animation: cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease, padding 0.3s ease, border 0.3s ease;
+  }
+
+  .topic-card.zone-red { border-left-color: var(--red); background: var(--red-bg); }
+  .topic-card.zone-amber { border-left-color: var(--amber); background: var(--amber-bg); }
+  .topic-card.zone-yellow { border-left-color: var(--yellow); background: var(--yellow-bg); }
+  .topic-card.zone-green { border-left-color: var(--green); background: var(--green-bg); }
+
+  .topic-card.removing {
+    transform: translateX(-100%);
+    opacity: 0;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-width: 0 !important;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .card-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  .card-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .badge-red { background: rgba(239,68,68,0.2); color: var(--red); }
+  .badge-amber { background: rgba(245,158,11,0.2); color: var(--amber); }
+  .badge-yellow { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .badge-green { background: rgba(16,185,129,0.2); color: var(--green); }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .meta-pill {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-pill span { color: var(--text); font-weight: 500; }
+
+  .score-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .edit-stars { display: flex; gap: 4px; }
+
+  .edit-star {
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: transform 0.1s ease, background 0.12s;
+    touch-action: manipulation;
+  }
+
+  .edit-star svg { width: 15px; height: 15px; transition: fill 0.12s, stroke 0.12s; }
+  .edit-star.filled svg { fill: var(--accent); stroke: var(--accent); }
+  .edit-star:not(.filled) svg { fill: none; stroke: rgba(255,255,255,0.25); }
+  .edit-star:hover { transform: scale(1.2); background: rgba(16,185,129,0.1); }
+
+  .weight-edit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .inline-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 8px;
+    width: 56px;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+
+  .inline-input:focus { border-color: var(--accent); }
+
+  .inline-label { font-size: 11px; color: var(--text-muted); }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    touch-action: manipulation;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover { background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.25); }
+  .icon-btn:active { transform: scale(0.92); }
+
+  /* ── SUMMARY PANEL ── */
+  .summary-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 16px 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: revealUp 0.5s ease forwards 0.45s;
+  }
+
+  .summary-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(10,10,15,0.85);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: 0 -4px 40px rgba(0,0,0,0.6), var(--glass-shadow);
+    padding: 14px 16px;
+  }
+
+  .summary-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .stat-box {
+    text-align: center;
+    padding: 8px 6px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .stat-val {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(16px, 4vw, 22px);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .stat-val.red { color: var(--red); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.risk { color: var(--yellow); }
+  .stat-val.neutral { color: var(--text); }
+
+  .stat-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  .top3-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .top3-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .top3-pill {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .summary-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .summary-actions .btn { flex: 1; }
+
+  /* ── DESKTOP LAYOUT ── */
+  @media (min-width: 640px) {
+    body { padding-bottom: 0; }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .left-col { position: sticky; top: 20px; }
+
+    .summary-panel {
+      position: sticky;
+      bottom: auto;
+      top: auto;
+      padding: 0;
+      opacity: 1;
+      transform: none;
+      animation: none;
+      margin-top: 20px;
+    }
+
+    .summary-inner {
+      background: var(--glass-bg);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .list-section { opacity: 1; transform: none; animation: none; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes revealDown {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes revealUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 200;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 20px rgba(16,185,129,0.4);
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── DIALOG ── */
+  .dialog-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+  }
+
+  .dialog-overlay.show { display: flex; }
+
+  .dialog-box {
+    background: #14141c;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 340px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  }
+
+  .dialog-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .dialog-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .dialog-actions { display: flex; gap: 10px; }
+  .dialog-actions .btn { flex: 1; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  /* ── WEIGHT DISPLAY ── */
+  .weight-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .weight-status .total { font-weight: 600; }
+  .weight-status .ok { color: var(--green); }
+  .weight-status .warn { color: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="logo-row">
+      <div class="logo-mark">Z</div>
+      <h1>ZoneMap</h1>
+    </div>
+    <p class="tagline">Know exactly where your marks are leaking — before the exam does.</p>
+  </header>
+
+  <div class="main-grid">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+      <!-- Subject + Topic Input -->
+      <div class="input-section">
+        <div class="card">
+          <div class="section-label">Subject</div>
+          <div class="subject-row">
+            <input type="text" id="subjectInput" placeholder="e.g. Financial Reporting, Paper 1" maxlength="80">
+          </div>
+
+          <div class="section-label">Add Topic</div>
+          <div class="add-topic-grid">
+            <input type="text" id="topicName" placeholder="Topic name" maxlength="80">
+            <input type="number" id="topicWeight" placeholder="%" min="0.1" max="100" step="0.1">
+          </div>
+
+          <div class="confidence-row">
+            <div class="confidence-label">Confidence</div>
+            <div class="stars" id="starSelector">
+              <!-- stars rendered by JS -->
+            </div>
+            <span id="confidenceDisplay" style="font-size:12px;color:var(--text-muted);margin-left:4px;"></span>
+          </div>
+
+          <button class="btn btn-primary" id="addTopicBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Topic
+          </button>
+
+          <div class="weight-status" id="weightStatus" style="display:none;"></div>
+          <div class="weight-warning" id="weightWarning"></div>
+        </div>
+      </div>
+
+      <!-- Summary (desktop: left column bottom; mobile: fixed bottom) -->
+      <div class="summary-panel" id="summaryPanel">
+        <div class="summary-inner">
+          <div class="summary-title">Priority Map — <span id="summarySubject">No subject set</span></div>
+          <div class="summary-grid">
+            <div class="stat-box">
+              <div class="stat-val red" id="statRed">0</div>
+              <div class="stat-label">RED</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val amber" id="statAmber">0</div>
+              <div class="stat-label">AMBER</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val risk" id="statRisk">0%</div>
+              <div class="stat-label">At Risk</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-val neutral" id="statTotal">0</div>
+              <div class="stat-label">Topics</div>
+            </div>
+          </div>
+          <div class="top3-row" id="top3Row" style="display:none;">
+            <div class="top3-label">Top 3:</div>
+            <div id="top3Pills"></div>
+          </div>
+          <div class="summary-actions">
+            <button class="btn btn-ghost" id="exportBtn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy Summary
+            </button>
+            <button class="btn btn-danger" id="clearBtn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN — Topic List -->
+    <div class="list-section">
+      <div class="list-header">
+        <div class="list-title">Priority Map</div>
+      </div>
+      <div class="empty-state show" id="emptyState">
+        <div class="empty-icon">◎</div>
+        Add your first topic above.<br>Your priority map will appear here, ranked by study urgency.
+      </div>
+      <div class="topic-list" id="topicList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confirm Dialog -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog-box">
+    <div class="dialog-title">Clear all topics?</div>
+    <div class="dialog-body">This will permanently delete all topics for <strong id="dialogSubjectName"></strong>. This cannot be undone.</div>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" id="dialogCancel">Cancel</button>
+      <button class="btn btn-danger" id="dialogConfirm">Clear All</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const STORAGE_KEY = 'zonemap_data';
+let state = {
+  subject: '',
+  topics: [],  // { id, name, weight, confidence }
+  selectedConfidence: 3
+};
+
+// ── UTILS ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function priorityScore(confidence, weight) {
+  return (6 - confidence) * weight;
+}
+
+function getZone(score) {
+  if (score >= 20) return 'red';
+  if (score >= 10) return 'amber';
+  if (score >= 5)  return 'yellow';
+  return 'green';
+}
+
+function zoneLabel(zone) {
+  return { red: 'Critical', amber: 'High Risk', yellow: 'Moderate', green: 'Safe' }[zone];
+}
+
+function zoneBadgeClass(zone) {
+  return `badge-${zone}`;
+}
+
+function getSortedTopics() {
+  return [...state.topics].sort((a, b) =>
+    priorityScore(b.confidence, b.weight) - priorityScore(a.confidence, a.weight)
+  );
+}
+
+// ── PERSISTENCE ──
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    subject: state.subject,
+    topics: state.topics,
+  }));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    state.subject = parsed.subject || '';
+    state.topics = parsed.topics || [];
+  } catch(e) { /* ignore corrupt data */ }
+}
+
+// ── STAR SELECTOR (input area) ──
+function buildStarSelector(container, value, onChange) {
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement('div');
+    star.className = 'star' + (i <= value ? ' filled' : '');
+    star.innerHTML = starSVG();
+    star.addEventListener('click', () => {
+      onChange(i);
+    });
+    container.appendChild(star);
+  }
+}
+
+function starSVG() {
+  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+}
+
+// ── RENDER TOPIC CARD ──
+function renderCard(topic) {
+  const score = priorityScore(topic.confidence, topic.weight);
+  const zone = getZone(score);
+  const card = document.createElement('div');
+  card.className = `topic-card zone-${zone}`;
+  card.dataset.id = topic.id;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-name">${escHTML(topic.name)}</div>
+      <div class="card-badge ${zoneBadgeClass(zone)}">${zoneLabel(zone)}</div>
+      <div class="icon-btn" title="Delete" data-delete="${topic.id}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="edit-stars" data-id="${topic.id}">
+        ${[1,2,3,4,5].map(i => `
+          <div class="edit-star${i <= topic.confidence ? ' filled' : ''}" data-val="${i}" data-id="${topic.id}" title="${i} star${i>1?'s':''}">
+            ${starSVG()}
+          </div>`).join('')}
+      </div>
+      <div class="weight-edit">
+        <input type="number" class="inline-input" data-id="${topic.id}" value="${topic.weight}" min="0.1" max="100" step="0.1" aria-label="Marks weight">
+        <span class="inline-label">%</span>
+      </div>
+      <div class="meta-pill">Score <span>${score.toFixed(1)}</span></div>
+    </div>
+  `;
+
+  // Edit star click
+  card.querySelectorAll('.edit-star').forEach(star => {
+    star.addEventListener('click', (e) => {
+      const val = parseInt(star.dataset.val);
+      const id = star.dataset.id;
+      updateTopic(id, { confidence: val });
+    });
+  });
+
+  // Weight inline edit
+  const weightInput = card.querySelector('.inline-input');
+  weightInput.addEventListener('change', (e) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0 && val <= 100) {
+      updateTopic(topic.id, { weight: val });
+    }
+  });
+
+  // Delete
+  card.querySelector('[data-delete]').addEventListener('click', () => {
+    deleteTopic(topic.id, card);
+  });
+
+  return card;
+}
+
+function escHTML(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── RENDER FULL LIST ──
+function renderTopicList() {
+  const list = document.getElementById('topicList');
+  const empty = document.getElementById('emptyState');
+  const sorted = getSortedTopics();
+
+  if (sorted.length === 0) {
+    list.innerHTML = '';
+    empty.classList.add('show');
+    return;
+  }
+  empty.classList.remove('show');
+
+  // Preserve existing cards, add/remove/reorder
+  const existing = new Map();
+  list.querySelectorAll('.topic-card').forEach(el => {
+    existing.set(el.dataset.id, el);
+  });
+
+  const fragment = document.createDocumentFragment();
+  sorted.forEach(topic => {
+    if (existing.has(topic.id)) {
+      const card = existing.get(topic.id);
+      // Update zone
+      const score = priorityScore(topic.confidence, topic.weight);
+      const zone = getZone(score);
+      card.className = `topic-card zone-${zone}`;
+      // Update badge
+      const badge = card.querySelector('.card-badge');
+      badge.className = `card-badge ${zoneBadgeClass(zone)}`;
+      badge.textContent = zoneLabel(zone);
+      // Update score pill
+      const scorePill = card.querySelector('.meta-pill span');
+      if (scorePill) scorePill.textContent = score.toFixed(1);
+      // Update stars
+      card.querySelectorAll('.edit-star').forEach(s => {
+        const v = parseInt(s.dataset.val);
+        s.className = 'edit-star' + (v <= topic.confidence ? ' filled' : '');
+      });
+      // Update weight input
+      const wi = card.querySelector('.inline-input');
+      if (wi && document.activeElement !== wi) wi.value = topic.weight;
+      fragment.appendChild(card);
+      existing.delete(topic.id);
+    } else {
+      fragment.appendChild(renderCard(topic));
+    }
+  });
+
+  list.innerHTML = '';
+  list.appendChild(fragment);
+  updateSummary();
+  checkWeightTotal();
+}
+
+// ── SUMMARY ──
+function updateSummary() {
+  const subject = state.subject.trim() || 'No subject set';
+  document.getElementById('summarySubject').textContent = subject;
+
+  const sorted = getSortedTopics();
+  let red = 0, amber = 0, riskWeight = 0;
+  sorted.forEach(t => {
+    const score = priorityScore(t.confidence, t.weight);
+    const zone = getZone(score);
+    if (zone === 'red') { red++; riskWeight += t.weight; }
+    if (zone === 'amber') { amber++; riskWeight += t.weight; }
+  });
+
+  document.getElementById('statRed').textContent = red;
+  document.getElementById('statAmber').textContent = amber;
+  document.getElementById('statRisk').textContent = riskWeight.toFixed(0) + '%';
+  document.getElementById('statTotal').textContent = sorted.length;
+
+  const top3Row = document.getElementById('top3Row');
+  const top3Pills = document.getElementById('top3Pills');
+  const top3 = sorted.slice(0, 3);
+  if (top3.length > 0) {
+    top3Row.style.display = 'flex';
+    top3Pills.innerHTML = top3.map(t =>
+      `<span class="top3-pill">${escHTML(t.name)}</span>`
+    ).join('');
+  } else {
+    top3Row.style.display = 'none';
+  }
+}
+
+// ── WEIGHT CHECK ──
+function checkWeightTotal() {
+  const total = state.topics.reduce((sum, t) => sum + t.weight, 0);
+  const ws = document.getElementById('weightStatus');
+  const ww = document.getElementById('weightWarning');
+
+  if (state.topics.length === 0) {
+    ws.style.display = 'none';
+    ww.classList.remove('show');
+    return;
+  }
+
+  ws.style.display = 'flex';
+  const rounded = Math.round(total * 10) / 10;
+  if (Math.abs(total - 100) < 0.5) {
+    ws.innerHTML = `<span class="total ok">✓ Total: ${rounded}%</span>`;
+    ww.classList.remove('show');
+  } else {
+    const delta = 100 - total;
+    ws.innerHTML = `<span class="total warn">Total: ${rounded}%</span>`;
+    ww.textContent = delta > 0
+      ? `Marks weight is ${Math.abs(delta).toFixed(1)}% short of 100. Add or increase topic weights.`
+      : `Marks weight exceeds 100 by ${Math.abs(delta).toFixed(1)}%. Reduce topic weights.`;
+    ww.classList.add('show');
+  }
+}
+
+// ── ADD TOPIC ──
+function addTopic() {
+  const nameEl = document.getElementById('topicName');
+  const weightEl = document.getElementById('topicWeight');
+  const name = nameEl.value.trim();
+  const weight = parseFloat(weightEl.value);
+  const confidence = state.selectedConfidence;
+
+  if (!name) { nameEl.focus(); showToast('Enter a topic name.'); return; }
+  if (!weight || weight <= 0 || weight > 100) { weightEl.focus(); showToast('Enter a valid marks weight (0.1–100).'); return; }
+
+  const topic = { id: uid(), name, weight, confidence };
+  state.topics.push(topic);
+  save();
+  renderTopicList();
+
+  nameEl.value = '';
+  weightEl.value = '';
+  state.selectedConfidence = 3;
+  buildStarSelector(document.getElementById('starSelector'), 3, setConfidence);
+  document.getElementById('confidenceDisplay').textContent = '';
+  nameEl.focus();
+}
+
+// ── UPDATE TOPIC ──
+function updateTopic(id, changes) {
+  const idx = state.topics.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  Object.assign(state.topics[idx], changes);
+  save();
+  renderTopicList();
+}
+
+// ── DELETE TOPIC ──
+function deleteTopic(id, cardEl) {
+  cardEl.style.maxHeight = cardEl.offsetHeight + 'px';
+  cardEl.offsetHeight; // force reflow
+  cardEl.classList.add('removing');
+  setTimeout(() => {
+    state.topics = state.topics.filter(t => t.id !== id);
+    save();
+    renderTopicList();
+  }, 320);
+}
+
+// ── CONFIDENCE ──
+function setConfidence(val) {
+  state.selectedConfidence = val;
+  buildStarSelector(document.getElementById('starSelector'), val, setConfidence);
+  const labels = ['', 'Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+  document.getElementById('confidenceDisplay').textContent = labels[val] || '';
+}
+
+// ── EXPORT ──
+function exportSummary() {
+  const subject = state.subject.trim() || 'Untitled Subject';
+  const date = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  const sorted = getSortedTopics();
+
+  const zones = { red: [], amber: [], yellow: [], green: [] };
+  sorted.forEach(t => {
+    const score = priorityScore(t.confidence, t.weight);
+    zones[getZone(score)].push(t);
+  });
+
+  const fmt = (arr) => arr.map(t => `${t.name} (${t.weight}%)`).join(', ') || 'None';
+  const riskWeight = [...zones.red, ...zones.amber].reduce((s, t) => s + t.weight, 0);
+
+  const text = [
+    `ZoneMap — ${subject} — ${date}`,
+    ``,
+    `RED ZONE   (Study Now): ${fmt(zones.red)}`,
+    `AMBER ZONE (Revisit):   ${fmt(zones.amber)}`,
+    `YELLOW ZONE (Review):   ${fmt(zones.yellow)}`,
+    `GREEN ZONE  (Safe):     ${fmt(zones.green)}`,
+    ``,
+    `High-risk marks: ${riskWeight.toFixed(0)}%`,
+  ].join('\n');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('Summary copied!')).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast('Summary copied!'); }
+  catch(e) { showToast('Copy failed — please copy manually.'); }
+  document.body.removeChild(ta);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ── CLEAR ALL ──
+function showClearDialog() {
+  document.getElementById('dialogSubjectName').textContent = state.subject.trim() || 'this subject';
+  document.getElementById('dialogOverlay').classList.add('show');
+}
+
+function confirmClear() {
+  state.topics = [];
+  state.subject = '';
+  save();
+  document.getElementById('subjectInput').value = '';
+  document.getElementById('dialogOverlay').classList.remove('show');
+  renderTopicList();
+  updateSummary();
+  checkWeightTotal();
+  showToast('All topics cleared.');
+}
+
+// ── SUBJECT INPUT ──
+document.getElementById('subjectInput').addEventListener('input', (e) => {
+  state.subject = e.target.value;
+  save();
+  document.getElementById('summarySubject').textContent = state.subject.trim() || 'No subject set';
+});
+
+// ── ENTER KEY ──
+['topicName', 'topicWeight'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addTopic();
+  });
+});
+
+// ── BUTTONS ──
+document.getElementById('addTopicBtn').addEventListener('click', addTopic);
+document.getElementById('exportBtn').addEventListener('click', exportSummary);
+document.getElementById('clearBtn').addEventListener('click', showClearDialog);
+document.getElementById('dialogCancel').addEventListener('click', () => {
+  document.getElementById('dialogOverlay').classList.remove('show');
+});
+document.getElementById('dialogConfirm').addEventListener('click', confirmClear);
+document.getElementById('dialogOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+});
+
+// ── INIT ──
+load();
+document.getElementById('subjectInput').value = state.subject;
+buildStarSelector(document.getElementById('starSelector'), state.selectedConfidence, setConfidence);
+renderTopicList();
+updateSummary();
+checkWeightTotal();
+</script>
+</body>
+</html>
