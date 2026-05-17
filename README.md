@@ -1,5 +1,6 @@
 # ZoneMap
 > Know exactly where your marks are leaking — before the exam does.
+> ![image alt]()
 
 ## The Problem
 Students approaching high-stakes exams have covered most of their syllabus but don't know where to spend their remaining time. Mock tests reveal gaps after the fact. Nothing maps confidence against marks weight to tell you which topic to study next.
