@@ -1100,7 +1100,8 @@ function checkWeightTotal() {
 
   ws.style.display = 'flex';
   const rounded = Math.round(total * 10) / 10;
-  if (Math.abs(total - 100) < 0.01) {
+
+  if (rounded === 100) {
     ws.innerHTML = `<span class="total ok">✓ Total: 100%</span>`;
     ww.classList.remove('show');
   } else {
@@ -1131,9 +1132,7 @@ function addTopic() {
 
   nameEl.value = '';
   weightEl.value = '';
-  state.selectedConfidence = 3;
-  buildStarSelector(document.getElementById('starSelector'), 3, setConfidence);
-  document.getElementById('confidenceDisplay').textContent = '';
+  setConfidence(3);
   nameEl.focus();
 }
 
@@ -1268,7 +1267,7 @@ document.getElementById('dialogOverlay').addEventListener('click', (e) => {
 // ── INIT ──
 load();
 document.getElementById('subjectInput').value = state.subject;
-buildStarSelector(document.getElementById('starSelector'), state.selectedConfidence, setConfidence);
+setConfidence(state.selectedConfidence);
 renderTopicList();
 updateSummary();
 checkWeightTotal();
