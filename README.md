@@ -1,8 +1,9 @@
 # ZoneMap
 > Know exactly where your marks are leaking — before the exam does.
-> ![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/info.jpg)
-> ![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/panel.jpg)
-> ![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/data.jpg)
+
+![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/panel.jpg)
+![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/info.jpg)
+![image alt](https://github.com/asap-tester/ZoneMap/blob/162b7956b03e536368ac9680799352f100331997/data.jpg)
 
 ## The Problem
 Students approaching high-stakes exams have covered most of their syllabus but don't know where to spend their remaining time. Mock tests reveal gaps after the fact. Nothing maps confidence against marks weight to tell you which topic to study next.
